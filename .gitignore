@@ -1,1 +1,8 @@
 .env
+demo.py
+one.bat
+one.py
+server.bat
+config/__pycache__/
+app/__pycache__/
+app/models/__pycache__/
