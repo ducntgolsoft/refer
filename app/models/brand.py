@@ -134,13 +134,17 @@ def config(data):
 
     if '(400) Số công bố và ngày công bố' in data and data['(400) Số công bố và ngày công bố']:
         vn_data = data['(400) Số công bố và ngày công bố'].split("\r\n")
-        so_cong_bo = vn_data[0]
-        ngay_cong_bo = vn_data[1]
-        data_insert['nhanhieu_socongbao_a'] = so_cong_bo
-        data_insert['nhanhieu_ngaycongbao_a'] = datetime.datetime.strptime(ngay_cong_bo, "%d.%m.%Y").strftime(
-            "%Y-%m-%d")
-        # nhanhieu_socongbao_b
-        # nhanhieu_ngaycongbao_b
+        so_cong_bo = vn_data[2] if len(vn_data) > 2 else ''
+        ngay_cong_bo = vn_data[1] if len(vn_data) > 1 else ''
+        if so_cong_bo and ngay_cong_bo:
+            data_insert['nhanhieu_socongbao_a'] = so_cong_bo
+            data_insert['nhanhieu_ngaycongbao_a'] = datetime.datetime.strptime(ngay_cong_bo, "%d.%m.%Y").strftime("%Y-%m-%d")
+            
+        so_cong_bo_b = vn_data[5] if len(vn_data) > 5 else ''
+        ngay_cong_bo_b = vn_data[4] if len(vn_data) > 4 else ''
+        if so_cong_bo_b and ngay_cong_bo_b:
+            data_insert['nhanhieu_socongbao_b'] = so_cong_bo_b
+            data_insert['nhanhieu_ngaycongbao_b'] = datetime.datetime.strptime(ngay_cong_bo_b, "%d.%m.%Y").strftime("%Y-%m-%d")
 
     # nhanhieu_donquocte
     # nhanhieu_donquocte_ngay

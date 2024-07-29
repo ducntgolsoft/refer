@@ -99,11 +99,20 @@ def config(data):
         data_insert['kdcn_nguoinop_address'] = chubang[1].strip() if chubang else ''
         data_insert['kdcn_nguoinop_name'] = chubang[0].strip() if chubang else ''
     if '(40) Số công bố và ngày công bố' in data and data['(40) Số công bố và ngày công bố']:
-        so_cong_bo = data['(40) Số công bố và ngày công bố'].split()
-        data_insert['kdcn_socongbao_a'] = so_cong_bo[0]
-        data_insert['kdcn_ngaycongbao_a'] = datetime.datetime.strptime(so_cong_bo[1], "%d.%m.%Y").strftime("%Y-%m-%d")
-        data_insert['kdcn_socongbo'] = so_cong_bo[0]
-        data_insert['kdcn_ngaycongbo'] = datetime.datetime.strptime(so_cong_bo[1], "%d.%m.%Y").strftime("%Y-%m-%d")
+        so_cong_bo = data['(40) Số công bố và ngày công bố'].split("\r\n")
+        so_cong_bo_a = so_cong_bo[0]
+        ngay_cong_bo_a = so_cong_bo[1]
+        if so_cong_bo_a and ngay_cong_bo_a:
+            data_insert['kdcn_socongbao_a'] = so_cong_bo[0]
+            data_insert['kdcn_ngaycongbao_a'] = datetime.datetime.strptime(so_cong_bo[1], "%d.%m.%Y").strftime("%Y-%m-%d")
+            data_insert['kdcn_socongbo'] = so_cong_bo[0]
+            data_insert['kdcn_ngaycongbo'] = datetime.datetime.strptime(so_cong_bo[1], "%d.%m.%Y").strftime("%Y-%m-%d")
+        if len(so_cong_bo) > 2:
+            so_cong_bo_b = so_cong_bo[2]
+            ngay_cong_bo_b = so_cong_bo[3]
+            if so_cong_bo_b and ngay_cong_bo_b:
+                data_insert['kdcn_socongbao_b'] = so_cong_bo[2]
+                data_insert['kdcn_ngaycongbao_b'] = datetime.datetime.strptime(so_cong_bo[3], "%d.%m.%Y").strftime("%Y-%m-%d")
     if 'Tiến trình' in data and data['Tiến trình']:
         if '(ID) QĐ chấp nhận đơn HT' in data['Tiến trình']:
             data_insert['kdcn_chapnhan_ngay'] = datetime.datetime.strptime(
@@ -119,12 +128,9 @@ def config(data):
     if 'Trạng thái' in data and data['Trạng thái']:
         data_insert['kdcn_trangthai'] = data['Trạng thái']
     if '(180) Ngày hết hạn' in data and data['(180) Ngày hết hạn']:
-        data_insert['kdcn_ttpl'] = datetime.datetime.strptime(data['(180) Ngày hết hạn'], "%d.%m.%Y").strftime(
-            "%Y-%m-%d")
-
+        data_insert['kdcn_ttpl'] = datetime.datetime.strptime(data['(180) Ngày hết hạn'], "%d.%m.%Y").strftime("%Y-%m-%d")
     if 'Tiến trình' in data and data['Tiến trình']:
         data_insert['kdcn_tientrinh'] = json.dumps(data['Tiến trình'])
-
     return data_insert
 
 

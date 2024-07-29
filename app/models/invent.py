@@ -149,13 +149,28 @@ def config(data):
         data_insert['sangche_nguoinop_name'] = chubang[0].strip() if chubang else ''
 
     if '(40) Số công bố và ngày công bố' in data and data['(40) Số công bố và ngày công bố']:
-        vn_data = data['(40) Số công bố và ngày công bố'].split("\r\n")
-        so_cong_bo = vn_data[0]
-        ngay_cong_bo = vn_data[2]
-        data_insert['sangche_socongbao_a'] = so_cong_bo
-        data_insert['sangche_ngaycongbao_a'] = datetime.datetime.strptime(ngay_cong_bo, "%d.%m.%Y").strftime("%Y-%m-%d")
-        data_insert['sangche_socongbo'] = so_cong_bo[0]
-        data_insert['sangche_ngaycongbo'] = datetime.datetime.strptime(ngay_cong_bo, "%d.%m.%Y").strftime("%Y-%m-%d")
+        split_data = data['(40) Số công bố và ngày công bố'].split(" ")
+        data_one = split_data[1]
+        if data_one:
+            vn_data = data_one.split("\r\n")
+            so_cong_bo = vn_data[0]
+            ngay_cong_bo = vn_data[2]
+            if so_cong_bo and ngay_cong_bo:
+                data_insert['sangche_socongbao_a'] = so_cong_bo
+                data_insert['sangche_ngaycongbao_a'] = datetime.datetime.strptime(ngay_cong_bo, "%d.%m.%Y").strftime("%Y-%m-%d")
+                data_insert['sangche_socongbo'] = so_cong_bo
+                data_insert['sangche_ngaycongbo'] = datetime.datetime.strptime(ngay_cong_bo, "%d.%m.%Y").strftime("%Y-%m-%d")
+        
+        data_two = split_data[2]
+        if data_two:
+            vn_data_2 = data_two.split("\r\n")
+            so_cong_bo_b = vn_data_2[0]
+            ngay_cong_bo_b = vn_data_2[2]
+            if so_cong_bo_b and ngay_cong_bo_b:
+                data_insert['sangche_socongbao_b'] = so_cong_bo_b
+                data_insert['sangche_bang_socongbo'] = so_cong_bo_b
+                data_insert['sangche_ngaycongbao_b'] = datetime.datetime.strptime(ngay_cong_bo_b, "%d.%m.%Y").strftime("%Y-%m-%d")
+        
 
     if '(85) Ngày vào pha quốc gia' in data and data['(85) Ngày vào pha quốc gia']:
         data_insert['sangche_ngayvaophaqg'] = '(85) Ngày vào pha quốc gia'
