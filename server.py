@@ -256,8 +256,8 @@ def simulate_jobs(type, year, month):
         with open('storage/error.json', 'w') as f:
             json.dump(error_records, f, indent=4, ensure_ascii=False)
         if len(error_records) > 0:
-            getFileError(type, year, month)
             getFileUrl(type, year, month)
+            getFileError(type, year, month)
             send_msg_tele(f"Xử lý dữ liệu {category} có lỗi. {len(error_records)} file - " + os.getenv('ULTRA_ID'))
 def submit_action():
     global cancel_flag, task_running

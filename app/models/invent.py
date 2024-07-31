@@ -78,7 +78,7 @@ def config(data):
         data_insert['sangche_ten'] = data['(54) Tên'].split('(VI)')[1].strip()
 
     if '(57) Tóm tắt"' in data and data['(57) Tóm tắt"']:
-        data_insert['sangche_mota'] = data['(57) Tóm tắt"']
+        data_insert['sangche_tomtat'] = data['(57) Tóm tắt"']
 
     if '(58) Các tài liệu đối chứng"' in data and data['(58) Các tài liệu đối chứng"']:
         data_insert['sangche_tldoichung'] = data['(58) Các tài liệu đối chứng"']
@@ -86,17 +86,18 @@ def config(data):
     if '(72) Tác giả sáng chế' in data and data['(72) Tác giả sáng chế']:
         authors = []
         addresses = []
-        pattern = r"\(VI\) ([^:]+) : ([^\r\n]+)"
-        matches = re.findall(pattern, data['(72) Tác giả sáng chế'])
-        for match in matches:
-            authors.append(match[0].strip())
-            addresses.append(match[1].strip())
-        data_insert['sangche_tacgia'] = " ".join(authors)
-        data_insert['sangche_tacgia_diachi'] = " ".join(addresses)
+        cut_data = data['(72) Tác giả sáng chế'].split('\r\n\r\n')
+        for item in cut_data:
+            author = item.split(':')
+            authors.append(author[0].strip())
+            addresses.append(author[1].strip())
+                
+        data_insert['sangche_tacgia'] = " | ".join(authors)
+        data_insert['sangche_tacgia_diachi'] = " | ".join(addresses)
 
     if '(51) Phân loại IPC"' in data and data['(51) Phân loại IPC"']:
         ipc_data = data['(51) Phân loại IPC"'].replace('\r\n', ' ')
-        data_insert['sangche_ipc_gach'] = ipc_data
+        data_insert['sangche_ipc_gach'] = json.dumps(ipc_data)
 
     if '(86) Số đơn và ngày nộp đơn PCT' in data and data['(86) Số đơn và ngày nộp đơn PCT']:
         pct_data = data['(86) Số đơn và ngày nộp đơn PCT'].split()
@@ -161,15 +162,16 @@ def config(data):
                 data_insert['sangche_socongbo'] = so_cong_bo
                 data_insert['sangche_ngaycongbo'] = datetime.datetime.strptime(ngay_cong_bo, "%d.%m.%Y").strftime("%Y-%m-%d")
         
-        data_two = split_data[2]
-        if data_two:
-            vn_data_2 = data_two.split("\r\n")
-            so_cong_bo_b = vn_data_2[0]
-            ngay_cong_bo_b = vn_data_2[2]
-            if so_cong_bo_b and ngay_cong_bo_b:
-                data_insert['sangche_socongbao_b'] = so_cong_bo_b
-                data_insert['sangche_bang_socongbo'] = so_cong_bo_b
-                data_insert['sangche_ngaycongbao_b'] = datetime.datetime.strptime(ngay_cong_bo_b, "%d.%m.%Y").strftime("%Y-%m-%d")
+        if len(split_data) > 2:
+            data_two = split_data[2]
+            if data_two:
+                vn_data_2 = data_two.split("\r\n")
+                so_cong_bo_b = vn_data_2[0]
+                ngay_cong_bo_b = vn_data_2[2]
+                if so_cong_bo_b and ngay_cong_bo_b:
+                    data_insert['sangche_socongbao_b'] = so_cong_bo_b
+                    data_insert['sangche_bang_socongbo'] = so_cong_bo_b
+                    data_insert['sangche_ngaycongbao_b'] = datetime.datetime.strptime(ngay_cong_bo_b, "%d.%m.%Y").strftime("%Y-%m-%d")
         
 
     if '(85) Ngày vào pha quốc gia' in data and data['(85) Ngày vào pha quốc gia']:
