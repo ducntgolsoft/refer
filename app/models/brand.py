@@ -66,6 +66,7 @@ def config(data):
     if '(541) Nhãn hiệu' in data and data['(541) Nhãn hiệu']:
         data_insert['nhanhieu_ten'] = data['(541) Nhãn hiệu'].split('(VI)')[1].strip()
 
+    data['images'] = []
     if '(540) Mẫu nhãn' in data and data['(540) Mẫu nhãn']:
         data['images'] = data['(540) Mẫu nhãn']
 

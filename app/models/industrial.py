@@ -206,30 +206,3 @@ def insertOrUpdate(data, table="industrial"):
     except Exception as e:
         myLogger(str(e), 'exception')
         return False
-
-
-def updateImage(batch_size=100):
-    try:
-        # Truy vấn tất cả các bản ghi từ cơ sở dữ liệu local
-        industrials_local_query = "SELECT kdcn_id_gach, kdcn_image FROM industrial_v2 WHERE kdcn_image IS NOT NULL"
-        with db_connection.cursor() as cursor_local:
-            cursor_local.execute(industrials_local_query)
-            all_local_rows = cursor_local.fetchall()
-        data_update = []
-        for i in range(0, len(all_local_rows), batch_size):
-            batch = all_local_rows[i:i + batch_size]
-            for row in batch:
-                data_update.append({
-                    'kdcn_id_gach': row[0],
-                    'images': json.loads(row[1])
-                })
-        with db_connection_live.cursor() as cursor_live:
-            for data in data_update:
-                update_query = "UPDATE industrial SET kdcn_image = %s WHERE kdcn_id_gach = %s"
-                cursor_live.execute(update_query, (json.dumps(data['images']), data['kdcn_id_gach']))
-                db_connection_live.commit()
-        return True
-    except Exception as e:
-        db_connection_live.rollback()
-        myLogger(str(e), 'exception')
-        return False
