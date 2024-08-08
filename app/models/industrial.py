@@ -176,7 +176,7 @@ def insertOrUpdate(data, table="industrial"):
                 data_insert['kdcn_chubang_info_adress'], data_insert['kdcn_nguoinop'],
                 data_insert['kdcn_nguoinop_address'],
                 data_insert['kdcn_socongbao_a'], data_insert['kdcn_ngaycongbao_a'],
-                json.dumps(data_insert['kdcn_image']),
+                data_insert['kdcn_image'],
                 data_insert['kdcn_sodonuutien'], data_insert['kdcn_ngayuutien'], data_insert['kdcn_manuocuutien'],
                 data_insert['kdcn_socongbo'], data_insert['kdcn_ngaycongbo'], data_insert['kdcn_nguoinop_name'],
                 data_insert['kdcn_tacgia_diachi'], data_insert['kdcn_shtt_diachi'],
@@ -206,3 +206,37 @@ def insertOrUpdate(data, table="industrial"):
     except Exception as e:
         myLogger(str(e), 'exception')
         return False
+
+
+def updateImage(data, table="industrial"):
+    if '(54) Tên kiểu dáng' not in data:
+        return False
+    try:
+        data_update = config(data)
+        cursor = db_connection.cursor()
+        check_query = f"SELECT * FROM {table} WHERE `kdcn_id_gach` = '{data_update['kdcn_id_gach']}' ORDER BY `id` DESC LIMIT 1"
+        cursor.execute(check_query)
+        result = cursor.fetchone()
+        if result:
+            data_update['kdcn_image'] = save_image('industrial', data_update['images'])
+            column_update = ['kdcn_image']
+            column_where = 'kdcn_id_gach'
+            set_clause = ', '.join([f'{col} = %s' for col in column_update])
+            update_query = f"UPDATE {table} SET {set_clause} WHERE {column_where} = %s AND `deleted_at` IS NULL"
+            data_tuple_update = (
+                data_update['kdcn_image'],
+                data_update['kdcn_id_gach']
+            )
+            try:
+                cursor.execute(update_query, data_tuple_update)
+                db_connection.commit()
+                return True
+            except Exception as e:
+                myLogger(str(e), 'exception')
+                return False
+        else:
+            return False
+    except Exception as e:
+        myLogger(str(e), 'exception')
+        return False
+    

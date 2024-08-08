@@ -10,7 +10,7 @@ import threading
 from app.helper import get_txt_files_info, myLogger, send_msg_tele
 from app.models.brand import insertOrUpdate as BrandInsertOrUpdate, updateImage as BrandUpdateImage
 from app.models.industrial import insertOrUpdate as IndustrialInsertOrUpdate, updateImage as IndustrialUpdateImage
-from app.models.invent import insertOrUpdate as InventInsertOrUpdate
+from app.models.invent import insertOrUpdate as InventInsertOrUpdate, updateImage as InventUpdateImage
 load_dotenv()
 cancel_flag = False
 task_running = False
@@ -143,7 +143,8 @@ def getFileUrl(file_type, year, month):
                 f.writelines(error_urls)
         
         print("Hoàn thành lấy url lỗi.")
-def simulate_jobs(type, year, month):
+
+def simulate_jobs(type, year, month, action = 'add'):
     global status, task_running, cancel_flag
     global cancel_flag
     global storage_data, folder_brand, folder_invent, folder_industrial
@@ -213,12 +214,20 @@ def simulate_jobs(type, year, month):
                     content = file.read()
                 data = json.loads(content)
                 result = None
-                if type == 'industrial':
-                    result = IndustrialInsertOrUpdate(data)
-                elif type == 'invent':
-                    result = InventInsertOrUpdate(data)
-                elif type == 'brand':
-                    result = BrandInsertOrUpdate(data)
+                if action == 'update_image':
+                    if type == 'industrial':
+                        result = IndustrialUpdateImage(data)
+                    elif type == 'invent':
+                        result = InventUpdateImage(data)
+                    elif type == 'brand':
+                        result = BrandUpdateImage(data)
+                else:
+                    if type == 'industrial':
+                        result = IndustrialInsertOrUpdate(data)
+                    elif type == 'invent':
+                        result = InventInsertOrUpdate(data)
+                    elif type == 'brand':
+                        result = BrandInsertOrUpdate(data)
                 if result:
                     status = "\033[92mDONE\033[0m"
                 else:
@@ -287,7 +296,9 @@ def submit_action():
             cancel_button.config(state="normal")
             restart_button.config(state="disabled")
             if action == "add":
-                simulate_jobs(type_data, year, month)
+                simulate_jobs(type_data, year, month, action)
+            if action == "update_image":
+                simulate_jobs(type_data, year, month, action)
             elif action == 'get_error':
                 getFileUrl(type_data, year, month)
             elif action == 'get_url':
@@ -348,7 +359,7 @@ ttk.Label(main_frame, text="Chọn loại hồ sơ:", width=20).grid(row=0, colu
 type_menu = ttk.OptionMenu(main_frame, type_var, "brand", "industrial", "invent", "brand")
 type_menu.grid(row=0, column=1, padx=5, pady=5, sticky=(tk.W, tk.E))
 ttk.Label(main_frame, text="Chọn hành động:", width=20).grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
-action_menu = ttk.OptionMenu(main_frame, action_var, "add", "add", "get_error", "get_url")
+action_menu = ttk.OptionMenu(main_frame, action_var, "add", "add", "update_image", "get_error", "get_url")
 action_menu.grid(row=1, column=1, padx=5, pady=5, sticky=(tk.W, tk.E))
 ttk.Label(main_frame, text="Nhập năm:", width=10).grid(row=2, column=0, padx=5, pady=5, sticky=tk.W)
 year_entry = ttk.Entry(main_frame, textvariable=year_var, width=25)
