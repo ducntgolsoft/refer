@@ -200,6 +200,8 @@ def config(data):
 
 
 def insertOrUpdate(data, table="invent"):
+    if '(54) Tên' not in data:
+        return False
     try:
         cursor = db_connection.cursor()
         data_insert = config(data)

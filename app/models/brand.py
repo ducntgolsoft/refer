@@ -66,7 +66,6 @@ def config(data):
     if '(541) Nhãn hiệu' in data and data['(541) Nhãn hiệu']:
         data_insert['nhanhieu_ten'] = data['(541) Nhãn hiệu'].split('(VI)')[1].strip()
 
-    data['images'] = []
     if '(540) Mẫu nhãn' in data and data['(540) Mẫu nhãn']:
         data['images'] = data['(540) Mẫu nhãn']
 
@@ -180,6 +179,8 @@ def config(data):
     return data_insert
 
 def insertOrUpdate(data, table="brand"):
+    if '(541) Nhãn hiệu' not in data:
+        return False
     try:
         cursor = db_connection.cursor()
         data_insert = config(data)
@@ -255,32 +256,5 @@ def insertOrUpdate(data, table="brand"):
                 return False
     except Exception as e:
         db_connection.rollback()
-        myLogger(str(e), 'exception')
-        return False
-
-def updateImage(batch_size=100):
-    try:
-        # Truy vấn tất cả các bản ghi từ cơ sở dữ liệu local
-        industrials_local_query = ("SELECT nhanhieu_id_gach, nhanhieu_sanpham_dichvu FROM brand_v3 WHERE "
-                                   "nhanhieu_sanpham_dichvu IS NOT NULL")
-        with db_connection.cursor() as cursor_local:
-            cursor_local.execute(industrials_local_query)
-            all_local_rows = cursor_local.fetchall()
-        data_update = []
-        for i in range(0, len(all_local_rows), batch_size):
-            batch = all_local_rows[i:i + batch_size]
-            for row in batch:
-                data_update.append({
-                    'nhanhieu_id_gach': row[0],
-                    'nhanhieu_sanpham_dichvu': row[1]
-                })
-        with db_connection_live.cursor() as cursor_live:
-            for data in data_update:
-                update_query = "UPDATE brand SET nhanhieu_sanpham_dichvu = %s WHERE nhanhieu_id_gach = %s AND nhanhieu_sanpham_dichvu IS NULL"
-                cursor_live.execute(update_query, (data['nhanhieu_sanpham_dichvu'], data['nhanhieu_id_gach']))
-                db_connection_live.commit()
-        return True
-    except Exception as e:
-        db_connection_live.rollback()
         myLogger(str(e), 'exception')
         return False

@@ -113,7 +113,6 @@ def getFileUrl(file_type, year, month):
                             content = file.read()
                         data = json.loads(content)
                         error_urls.append(data['url'] + '\n')
-                        os.remove(file_path)
                     else:
                         print(f"File {error['file']} does not exist.")
         else:

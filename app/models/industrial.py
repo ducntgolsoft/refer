@@ -135,6 +135,8 @@ def config(data):
 
 
 def insertOrUpdate(data, table="industrial"):
+    if '(54) Tên kiểu dáng' not in data:
+        return False
     try:
         cursor = db_connection.cursor()
         data_insert = config(data)
