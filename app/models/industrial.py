@@ -176,7 +176,7 @@ def insertOrUpdate(data, table="industrial"):
                 data_insert['kdcn_chubang_info_adress'], data_insert['kdcn_nguoinop'],
                 data_insert['kdcn_nguoinop_address'],
                 data_insert['kdcn_socongbao_a'], data_insert['kdcn_ngaycongbao_a'],
-                data_insert['kdcn_image'],
+                json.dumps(data_insert['kdcn_image']),
                 data_insert['kdcn_sodonuutien'], data_insert['kdcn_ngayuutien'], data_insert['kdcn_manuocuutien'],
                 data_insert['kdcn_socongbo'], data_insert['kdcn_ngaycongbo'], data_insert['kdcn_nguoinop_name'],
                 data_insert['kdcn_tacgia_diachi'], data_insert['kdcn_shtt_diachi'],
@@ -224,7 +224,7 @@ def updateImage(data, table="industrial"):
             set_clause = ', '.join([f'{col} = %s' for col in column_update])
             update_query = f"UPDATE {table} SET {set_clause} WHERE {column_where} = %s AND `deleted_at` IS NULL"
             data_tuple_update = (
-                data_update['kdcn_image'],
+                json.dumps(data_update['kdcn_image']),
                 data_update['kdcn_id_gach']
             )
             try:

@@ -238,7 +238,7 @@ def insertOrUpdate(data, table="invent"):
             set_clause = ', '.join([f'{col} = %s' for col in column_update])
             update_query = f"UPDATE {table} SET {set_clause} WHERE {column_where} = %s AND `deleted_at` IS NULL"
             data_tuple_update = (
-                data_insert['sangche_ngaynop'], data_insert['sangche_ten'], data_insert['sangche_image'],
+                data_insert['sangche_ngaynop'], data_insert['sangche_ten'],  json.dumps(data_insert['sangche_image']),
                 data_insert['sangche_nguoinop_full'], data_insert['sangche_nguoinop_name'],
                 data_insert['sangche_nguoinop_provcode'],
                 data_insert['sangche_nguoinop_address'], data_insert['sangche_nguoinop_name'],
@@ -309,11 +309,7 @@ def updateImage(data, table="invent"):
         cursor.execute(check_query)
         result = cursor.fetchone()
         if 'images' in data and data['images'] != '':
-            if result:
-                old_image = json.loads(result[4]) if result[4] else []
-                data_update['sangche_image'] = update_image('invent', data['images'], old_image)
-            else:
-                data_update['sangche_image'] = save_image('invent', data['images'])
+            data_update['sangche_image'] = save_image('invent', data['images'])
         if result:
             data_update['sangche_image'] = json.loads(result[4]) if result[4] else []
             column_update = [
@@ -323,7 +319,7 @@ def updateImage(data, table="invent"):
             set_clause = ', '.join([f'{col} = %s' for col in column_update])
             update_query = f"UPDATE {table} SET {set_clause} WHERE {column_where} = %s AND `deleted_at` IS NULL"
             data_tuple_update = (
-                data_update['sangche_image'],
+                json.dumps(data_update['sangche_image']),
                 datetime.datetime.now(),
                 data_update['sangche_id_gach']
             )

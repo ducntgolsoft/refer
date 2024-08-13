@@ -267,6 +267,7 @@ def simulate_jobs(type, year, month, action = 'add'):
             getFileUrl(type, year, month)
             getFileError(type, year, month)
             send_msg_tele(f"Xử lý dữ liệu {category} có lỗi. {len(error_records)} file - " + os.getenv('ULTRA_ID'))
+
 def submit_action():
     global cancel_flag, task_running
     if task_running:
@@ -325,14 +326,18 @@ def submit_action():
     task_thread = threading.Thread(target=long_running_task)
     task_thread.start()
     root.protocol("WM_DELETE_WINDOW", on_closing_disabled)
+
 def cancel_action():
     global cancel_flag
     cancel_flag = True
+
 def on_closing_disabled():
     if task_running:
         messagebox.showwarning("Cảnh báo", "Công việc đang chạy, không thể đóng cửa sổ.")
+
 def on_closing():
     root.destroy()
+
 def restart_program():
     python = sys.executable
     os.execl(python, python, *sys.argv)
@@ -381,3 +386,4 @@ restart_button = ttk.Button(button_frame, text="Restart", command=restart_progra
 restart_button.grid(row=0, column=2, padx=5)
 root.protocol("WM_DELETE_WINDOW", on_closing)
 root.mainloop()
+

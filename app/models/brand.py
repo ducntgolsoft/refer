@@ -218,7 +218,7 @@ def insertOrUpdate(data, table="brand"):
             set_clause = ', '.join([f'{col} = %s' for col in column_update])
             update_query = f"UPDATE {table} SET {set_clause} WHERE {column_where} = %s AND `deleted_at` IS NULL"
             values_update = (
-                data_insert['nhanhieu_ngaynop'], data_insert['nhanhieu_ten'], data_insert['nhanhieu_image'], data_insert['nhanhieu_loai'], 
+                data_insert['nhanhieu_ngaynop'], data_insert['nhanhieu_ten'], json.dumps(data_insert['nhanhieu_image']), data_insert['nhanhieu_loai'], 
                 data_insert['nhanhieu_colorname'], data_insert['nhanhieu_pl_nice'], data_insert['nhanhieu_pl_vienna'], data_insert['nhanhieu_noidungkhac'],
                 data_insert['nhanhieu_bang_id_gach'], data_insert['nhanhieu_bang_ngaycap'], data_insert['nhanhieu_bang_ngaycongbo'],
                 data_insert['nhanhieu_lan_giahan'], data_insert['nhanhieu_ttpl'], data_insert['nhanhieu_chubang_info_name'],
@@ -267,15 +267,25 @@ def updateImage(data, table="brand"):
     try:
         data_update = config(data)
         cursor = db_connection.cursor()
-        check_query = f"SELECT * FROM {table} WHERE `nhanhieu_id_gach` = '{data_update['nhanhieu_id_gach']}' ORDER BY `id` DESC LIMIT 1"
-        cursor.execute(check_query)
+
+        # Tối ưu hóa truy vấn SQL với SELECT có giới hạn cột
+        check_query = f"""
+            SELECT 1 
+            FROM {table} 
+            WHERE nhanhieu_id_gach = %s 
+            ORDER BY id DESC 
+            LIMIT 1
+        """
+        cursor.execute(check_query, (data_update['nhanhieu_id_gach'],))
         result = cursor.fetchone()
+
         if result:
             data_update['nhanhieu_image'] = save_image('brand', data_update['images'])
-            column_update = ['nhanhieu_image']
-            column_where = 'nhanhieu_id_gach'
-            set_clause = ', '.join([f'{col} = %s' for col in column_update])
-            update_query = f"UPDATE {table} SET {set_clause} WHERE {column_where} = %s AND `deleted_at` IS NULL"
+            update_query = f"""
+                UPDATE {table} 
+                SET nhanhieu_image = %s 
+                WHERE nhanhieu_id_gach = %s AND deleted_at IS NULL
+            """
             data_tuple_update = (
                 data_update['nhanhieu_image'],
                 data_update['nhanhieu_id_gach']
@@ -292,4 +302,5 @@ def updateImage(data, table="brand"):
     except Exception as e:
         myLogger(str(e), 'exception')
         return False
+
     
