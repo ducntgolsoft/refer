@@ -4,6 +4,11 @@ import json
 from app.helper import save_image, update_image, myLogger
 from config.database import db_connection_live, db_connection
 
+from pymongo import MongoClient
+from dotenv import load_dotenv
+import os
+from pymongo import MongoClient
+load_dotenv()
 
 def config(data):
     data_insert = {
@@ -179,24 +184,24 @@ def config(data):
 
     return data_insert
 
-def insertOrUpdate(data, table="brand"):
+def insertOrUpdate(data, collection="brand"):
     if '(541) Nhãn hiệu' not in data:
         return False
     try:
-        cursor = db_connection.cursor()
+        client = MongoClient(os.getenv('DB_MONGO_DSN'))
+        db = client[os.getenv('DB_DATABASE')]
         data_insert = config(data)
-        check_query = f"SELECT * FROM `{table}` WHERE `nhanhieu_id_gach` = '{data_insert['nhanhieu_id_gach']}' ORDER BY `id` DESC LIMIT 1"
-        cursor.execute(check_query)
-        result = cursor.fetchone()
+        check_query = {"nhanhieu_id_gach": data_insert['nhanhieu_id_gach']}
+        result = db[collection].find_one(check_query)
         if 'images' in data and data['images'] != '':
             if result:
-                old_image = json.loads(result[4]) if result[4] else []
+                old_image = result.get('nhanhieu_image', [])
                 # data_insert['nhanhieu_image'] = update_image('brand', data['images'], old_image)
                 data_insert['nhanhieu_image'] = old_image
             else:
                 data_insert['nhanhieu_image'] = save_image('brand', data['images'])
         if result:
-            data_insert['nhanhieu_image'] = json.loads(result[4]) if result[4] else []
+            data_insert['nhanhieu_image'] = result.get('nhanhieu_image', [])
         if result:
             column_update = [
                 'nhanhieu_ngaynop', 'nhanhieu_ten', 'nhanhieu_image', 'nhanhieu_loai',
@@ -215,84 +220,39 @@ def insertOrUpdate(data, table="brand"):
                 'nhanhieu_tientrinh', 'nhanhieu_sanpham_dichvu'
             ]
             column_where = 'nhanhieu_id_gach'
-            set_clause = ', '.join([f'{col} = %s' for col in column_update])
-            update_query = f"UPDATE {table} SET {set_clause} WHERE {column_where} = %s AND `deleted_at` IS NULL"
-            values_update = (
-                data_insert['nhanhieu_ngaynop'], data_insert['nhanhieu_ten'], json.dumps(data_insert['nhanhieu_image']), data_insert['nhanhieu_loai'], 
-                data_insert['nhanhieu_colorname'], data_insert['nhanhieu_pl_nice'], data_insert['nhanhieu_pl_vienna'], data_insert['nhanhieu_noidungkhac'],
-                data_insert['nhanhieu_bang_id_gach'], data_insert['nhanhieu_bang_ngaycap'], data_insert['nhanhieu_bang_ngaycongbo'],
-                data_insert['nhanhieu_lan_giahan'], data_insert['nhanhieu_ttpl'], data_insert['nhanhieu_chubang_info_name'],
-                data_insert['nhanhieu_chubang_info_adress'], data_insert['nhanhieu_bang_quocgia'], data_insert['nhanhieu_nguoinop'],
-                data_insert['nhanhieu_nguoinop_address'], data_insert['nhanhieu_nguoinop_nationality'], data_insert['nhanhieu_daidienshtt'],
-                data_insert['nhanhieu_socongbao_a'], data_insert['nhanhieu_ngaycongbao_a'], data_insert['nhanhieu_socongbao_b'],
-                data_insert['nhanhieu_ngaycongbao_b'], data_insert['nhanhieu_tltg'], data_insert['nhanhieu_sodonuutien'], data_insert['nhanhieu_pl_niceclass'],
-                data_insert['nhanhieu_bang_id'], data_insert['nhanhieu_ngayuutien'], data_insert['nhanhieu_manuocuutien'],
-                data_insert['nhanhieu_pl_vienna_detail'], data_insert['nhanhieu_id'], data_insert['nhanhieu_chubang_info_provcode'],
-                data_insert['nhanhieu_chubang_info_countrycode'], data_insert['nhanhieu_nguoinop_name'], data_insert['nhanhieu_donquocte'], 
-                data_insert['nhanhieu_donquocte_ngay'], data_insert['nhanhieu_nguoinop_provcode'], datetime.datetime.now(), 
-                data_insert['nhanhieu_trangthai'], data_insert['nhanhieu_dichthuat'], data_insert['nhanhieu_kieucuamau'],
-                data_insert['nhanhieu_tientrinh'], data_insert['nhanhieu_sanpham_dichvu'],
-                data_insert['nhanhieu_id_gach']
-            )
+            update_query = {"$set": {col: data_insert[col] for col in column_update}}
             try:
-                cursor.execute(update_query, values_update)
-                db_connection.commit()
+                db[collection].update_one(check_query, update_query)
                 return True
             except Exception as e:
                 myLogger(str(e), 'exception')
-                db_connection.rollback()
                 return False
         else:
-            columns = ', '.join(data_insert.keys())
-            placeholders = ', '.join(['%s'] * len(data_insert))
-            insert_query = f""" INSERT INTO {table} ({columns}) VALUES ({placeholders}) """
-            values = list(data_insert.values())
             try:
-                cursor.execute(insert_query, values)
-                db_connection.commit()
+                db[collection].insert_one(data_insert)
                 return True
             except Exception as e:
                 myLogger(str(e), 'exception')
-                db_connection.rollback()
                 return False
     except Exception as e:
-        db_connection.rollback()
         myLogger(str(e), 'exception')
         return False
     
     
-def updateImage(data, table="brand"):
+def updateImage(data, collection="brand"):
     if '(541) Nhãn hiệu' not in data:
         return False
     try:
         data_update = config(data)
-        cursor = db_connection.cursor()
-
-        # Tối ưu hóa truy vấn SQL với SELECT có giới hạn cột
-        check_query = f"""
-            SELECT 1 
-            FROM {table} 
-            WHERE nhanhieu_id_gach = %s 
-            ORDER BY id DESC 
-            LIMIT 1
-        """
-        cursor.execute(check_query, (data_update['nhanhieu_id_gach'],))
-        result = cursor.fetchone()
-
+        client = MongoClient(os.getenv('DB_MONGO_DSN'))
+        db = client[os.getenv('DB_DATABASE')]
+        check_query = {"nhanhieu_id_gach": data_update['nhanhieu_id_gach']}
+        result = db[collection].find_one(check_query)
         if result:
             data_update['nhanhieu_image'] = save_image('brand', data_update['images'])
-            update_query = f"""
-                UPDATE {table} 
-                SET nhanhieu_image = %s 
-                WHERE nhanhieu_id_gach = %s AND deleted_at IS NULL
-            """
-            data_tuple_update = (
-                data_update['nhanhieu_image'],
-                data_update['nhanhieu_id_gach']
-            )
+            update_query = {"$set": {"nhanhieu_image": data_update['nhanhieu_image']}}
             try:
-                cursor.execute(update_query, data_tuple_update)
-                db_connection.commit()
+                db[collection].update_one(check_query, update_query)
                 return True
             except Exception as e:
                 myLogger(str(e), 'exception')
@@ -302,5 +262,3 @@ def updateImage(data, table="brand"):
     except Exception as e:
         myLogger(str(e), 'exception')
         return False
-
-    
