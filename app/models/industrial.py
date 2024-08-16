@@ -146,13 +146,16 @@ def insertOrUpdate(data, table="industrial"):
         if 'images' in data and data['images'] != '':
             if result:
                 old_image = json.loads(result[24]) if result[24] else []
-                # data_insert['kdcn_image'] = update_image('industrial', data['images'], old_image)
                 data_insert['kdcn_image'] = old_image
             else:
                 data_insert['kdcn_image'] = save_image('industrial', data['images'])
+        # if result:
+            # data_insert['kdcn_image'] = save_image('brand', data['images'])
+        else:
+            old_image = json.loads(result[24]) if result[24] else []
+            data_insert['kdcn_image'] = old_image
         if result:
-            data_insert['kdcn_image'] = json.loads(result[24]) if result[24] else []
-        if result:
+            
             column_update = [
                 'kdcn_ngaynop', 'kdcn_ten', 'kdcn_mota', 'kdcn_tacgia', 'kdcn_pllocarno', 'kdcn_plquocgia',
                 'kdcn_bang_id_gach',
