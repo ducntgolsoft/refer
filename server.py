@@ -8,7 +8,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import threading
 from app.helper import get_txt_files_info, myLogger, send_msg_tele
-from app.models.brand import insertOrUpdate as BrandInsertOrUpdate, updateImage as BrandUpdateImage
+from app.models.brand import insertOrUpdate as BrandInsertOrUpdate, updateImage as BrandUpdateImage, updateProgressProfile as BrandUpdateProgressProfile
 from app.models.industrial import insertOrUpdate as IndustrialInsertOrUpdate, updateImage as IndustrialUpdateImage
 from app.models.invent import insertOrUpdate as InventInsertOrUpdate, updateImage as InventUpdateImage
 load_dotenv()
@@ -259,13 +259,23 @@ def simulate_jobs(type, year, month, action = 'add'):
         myLogger(f"Error: {str(e)}", 'exception')
     finally:
         print("Hoàn thành xử lý dữ liệu: " + category)
+        send_msg_tele('Xử lý Cập nhật Tiến trình SlawM')
+        print("Xử lý Cập nhật Tiến trình SlawM")
+        if type == 'brand':
+            check = BrandUpdateProgressProfile()
+            if check:
+                print("Cập nhật tiến trình SlawM thành công.")
+            else:
+                print("Cập nhật tiến trình SlawM thất bại.")
+                send_msg_tele('Cập nhật tiến trình SlawM thất bại.')
+                
         root.after(0, lambda: messagebox.showinfo("Thông báo", f"Kết thúc xử lý dữ liệu {category}, thời gian xử lý: {round(duration_process_total/60000, 2)} phút"))
         send_msg_tele(f"Kết thúc xử lý dữ liệu {category}, thời gian xử lý: {round(duration_process_total/60000, 2)} phút - " + os.getenv('ULTRA_ID'))
         with open('storage/error.json', 'w') as f:
             json.dump(error_records, f, indent=4, ensure_ascii=False)
         if len(error_records) > 0:
-            getFileUrl(type, year, month)
-            getFileError(type, year, month)
+            # getFileUrl(type, year, month)
+            # getFileError(type, year, month)
             send_msg_tele(f"Xử lý dữ liệu {category} có lỗi. {len(error_records)} file - " + os.getenv('ULTRA_ID'))
 
 def submit_action():

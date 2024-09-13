@@ -1,5 +1,6 @@
 import datetime
 import json
+import requests
 
 from app.helper import save_image, update_image, myLogger
 from config.database import db_connection_live, db_connection
@@ -66,9 +67,9 @@ def config(data):
     if '(541) Nhãn hiệu' in data and data['(541) Nhãn hiệu']:
         data_insert['nhanhieu_ten'] = data['(541) Nhãn hiệu'].split('(VI)')[1].strip()
 
-    data_insert['images'] = []
+    data_insert['nhanhieu_image'] = []
     if '(540) Mẫu nhãn' in data and data['(540) Mẫu nhãn']:
-        data_insert['images'] = data['(540) Mẫu nhãn']
+        data_insert['nhanhieu_image'] = data['(540) Mẫu nhãn']
 
     if 'Loại đơn' in data and data['Loại đơn']:
         data_insert['nhanhieu_loai'] = data['Loại đơn']
@@ -188,15 +189,19 @@ def insertOrUpdate(data, table="brand"):
         check_query = f"SELECT * FROM `{table}` WHERE `nhanhieu_id_gach` = '{data_insert['nhanhieu_id_gach']}' ORDER BY `id` DESC LIMIT 1"
         cursor.execute(check_query)
         result = cursor.fetchone()
-        if 'images' in data and data['images'] != '':
+        if 'nhanhieu_image' in data and data['nhanhieu_image'] != '':
             if result:
+                if not isinstance(result[4], list):
+                    old_image = json.dumps(result[4])
                 old_image = json.loads(result[4]) if result[4] else []
-                # data_insert['nhanhieu_image'] = update_image('brand', data['images'], old_image)
+                # data_insert['nhanhieu_image'] = update_image('brand', data['nhanhieu_image'], old_image)
                 data_insert['nhanhieu_image'] = old_image
             else:
-                data_insert['nhanhieu_image'] = save_image('brand', data['images'])
+                data_insert['nhanhieu_image'] = save_image('brand', data['nhanhieu_image'])
         if result:
-            data_insert['nhanhieu_image'] = json.loads(result[4]) if result[4] else []
+            if not isinstance(result[4], list):
+                old_image = json.dumps([result[4]])
+            data_insert['nhanhieu_image'] = json.loads(old_image) if old_image else []
         if result:
             column_update = [
                 'nhanhieu_ngaynop', 'nhanhieu_ten', 'nhanhieu_image', 'nhanhieu_loai',
@@ -260,7 +265,6 @@ def insertOrUpdate(data, table="brand"):
         myLogger(str(e), 'exception')
         return False
     
-    
 def updateImage(data, table="brand"):
     if '(541) Nhãn hiệu' not in data:
         return False
@@ -303,4 +307,24 @@ def updateImage(data, table="brand"):
         myLogger(str(e), 'exception')
         return False
 
-    
+def updateProgressProfile():
+    try:
+        cursor = db_connection.cursor()
+        url = 'http://sml.test/getByProfileType/brand'
+        response = requests.get(url)
+        results = response.json()
+        for result in results:
+            profile_quantity = result.get('profile_quantity')
+            progress_length = result.get('progress_length')
+            check_query = f"SELECT * FROM `brand` WHERE `nhanhieu_id_gach` = '{profile_quantity}' ORDER BY `id` DESC LIMIT 1"
+            cursor.execute(check_query)
+            result = cursor.fetchone()
+            new_length = len(json.loads(result[46]))
+            if(progress_length != new_length):
+                url = 'http://sml.test/api/updateProgessProfile'
+                response = requests.post(url, data={'profile_quantity': profile_quantity, 'progress': result[46]})
+                print(response.text)
+        return True
+    except Exception as e:
+        myLogger(str(e), 'exception')
+        return False
