@@ -5,6 +5,10 @@ import requests
 from app.helper import save_image, update_image, myLogger
 from config.database import db_connection_live, db_connection
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 
 def config(data):
     data_insert = {
@@ -310,7 +314,7 @@ def updateImage(data, table="brand"):
 def updateProgressProfile():
     try:
         cursor = db_connection.cursor()
-        url = 'http://sml.test/getByProfileType/brand'
+        url = os.getenv('SLM_URL') + '/getByProfileType/brand'
         response = requests.get(url)
         results = response.json()
         for result in results:
@@ -321,9 +325,8 @@ def updateProgressProfile():
             result = cursor.fetchone()
             new_length = len(json.loads(result[46]))
             if(progress_length != new_length):
-                url = 'http://sml.test/api/updateProgessProfile'
+                url = os.getenv('SLM_URL') + '/api/updateProgessProfile'
                 response = requests.post(url, data={'profile_quantity': profile_quantity, 'progress': result[46]})
-                print(response.text)
         return True
     except Exception as e:
         myLogger(str(e), 'exception')

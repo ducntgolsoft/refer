@@ -1,8 +1,13 @@
 import datetime
 import json
+import requests
 
 from app.helper import save_image, myLogger
 from config.database import db_connection_live, db_connection
+
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 column_industrial = [
     'kdcn_id', 'kdcn_id_gach', 'kdcn_ngaynop', 'kdcn_nguoinop_provcode', 'kdcn_nguoinop_nationality',
@@ -243,3 +248,23 @@ def updateImage(data, table="industrial"):
         myLogger(str(e), 'exception')
         return False
     
+def updateProgressProfile():
+    try:
+        cursor = db_connection.cursor()
+        url = os.getenv('SLM_URL') + '/getByProfileType/industrial_design'
+        response = requests.get(url)
+        results = response.json()
+        for result in results:
+            profile_quantity = result.get('profile_quantity')
+            progress_length = result.get('progress_length')
+            check_query = f"SELECT * FROM `industrial` WHERE `kdcn_id_gach` = '{profile_quantity}' ORDER BY `id` DESC LIMIT 1"
+            cursor.execute(check_query)
+            result = cursor.fetchone()
+            new_length = len(json.loads(result[43]))
+            if(progress_length != new_length):
+                url = os.getenv('SLM_URL') + '/api/updateProgessProfile'
+                response = requests.post(url, data={'profile_quantity': profile_quantity, 'progress': result[43]})
+        return True
+    except Exception as e:
+        myLogger(str(e), 'exception')
+        return False

@@ -1,7 +1,10 @@
 import datetime
 import json
-import re
+import requests
 from config.database import db_connection
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 from app.helper import save_image, update_image, myLogger
 
@@ -336,4 +339,26 @@ def updateImage(data, table="invent"):
     except Exception as e:
         myLogger(str(e), 'exception')
         db_connection.rollback()
+        return False
+    
+def updateProgressProfile():
+    try:
+        cursor = db_connection.cursor()
+        url = os.getenv('SLM_URL') + '/getByProfileType/invent'
+        response = requests.get(url)
+        results = response.json()
+        for result in results:
+            profile_quantity = result.get('profile_quantity')
+            progress_length = result.get('progress_length')
+            check_query = f"SELECT * FROM `invent` WHERE `sangche_id_gach` = '{profile_quantity}' ORDER BY `id` DESC LIMIT 1"
+            cursor.execute(check_query)
+            result = cursor.fetchone()
+            print(result[60])
+            new_length = len(json.loads(result[60]))
+            if(progress_length != new_length):
+                url = os.getenv('SLM_URL') + '/api/updateProgessProfile'
+                response = requests.post(url, data={'profile_quantity': profile_quantity, 'progress': result[60]})
+        return True
+    except Exception as e:
+        myLogger(str(e), 'exception')
         return False

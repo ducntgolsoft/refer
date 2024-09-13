@@ -9,8 +9,8 @@ from tkinter import ttk, messagebox
 import threading
 from app.helper import get_txt_files_info, myLogger, send_msg_tele
 from app.models.brand import insertOrUpdate as BrandInsertOrUpdate, updateImage as BrandUpdateImage, updateProgressProfile as BrandUpdateProgressProfile
-from app.models.industrial import insertOrUpdate as IndustrialInsertOrUpdate, updateImage as IndustrialUpdateImage
-from app.models.invent import insertOrUpdate as InventInsertOrUpdate, updateImage as InventUpdateImage
+from app.models.industrial import insertOrUpdate as IndustrialInsertOrUpdate, updateImage as IndustrialUpdateImage, updateProgressProfile as IndustrialUpdateProgressProfile
+from app.models.invent import insertOrUpdate as InventInsertOrUpdate, updateImage as InventUpdateImage, updateProgressProfile as InventUpdateProgressProfile
 load_dotenv()
 cancel_flag = False
 task_running = False
@@ -274,9 +274,8 @@ def simulate_jobs(type, year, month, action = 'add'):
         with open('storage/error.json', 'w') as f:
             json.dump(error_records, f, indent=4, ensure_ascii=False)
         if len(error_records) > 0:
-            # getFileUrl(type, year, month)
-            # getFileError(type, year, month)
-            send_msg_tele(f"Xử lý dữ liệu {category} có lỗi. {len(error_records)} file - " + os.getenv('ULTRA_ID'))
+            getFileUrl(type, year, month)
+            getFileError(type, year, month)
 
 def submit_action():
     global cancel_flag, task_running
@@ -288,6 +287,37 @@ def submit_action():
         global cancel_flag, task_running
         type_data = type_var.get()
         action = action_var.get()
+        
+        if action == "update_progress":
+            if type_data == 'brand':
+                print("Bắt đầu cập nhật tiến trình SlawM Brand.")
+                check = BrandUpdateProgressProfile()
+                if check:
+                    send_msg_tele('Cập nhật tiến trình SlawM Brand thành công.')
+                    print("Cập nhật tiến trình SlawM Brand thành công.")
+                else:
+                    send_msg_tele('Cập nhật tiến trình SlawM Brand thất bại.')
+                    print("Cập nhật tiến trình SlawM Brand thất bại.")
+            if type_data == 'industrial':
+                print("Bắt đầu cập nhật tiến trình SlawM Industrial.")
+                check = IndustrialUpdateProgressProfile()
+                if check:
+                    send_msg_tele('Cập nhật tiến trình SlawM Industrial thành công.')
+                    print("Cập nhật tiến trình SlawM Industrial thành công.")
+                else:
+                    send_msg_tele('Cập nhật tiến trình SlawM Industrial thất bại.')
+                    print("Cập nhật tiến trình SlawM Industrial thất bại.")
+            if type_data == 'invent':
+                print("Bắt đầu cập nhật tiến trình SlawM Invent.")
+                check = InventUpdateProgressProfile()
+                if check:
+                    send_msg_tele('Cập nhật tiến trình SlawM Invent thành công.')
+                    print("Cập nhật tiến trình SlawM Invent thành công.")
+                else:
+                    send_msg_tele('Cập nhật tiến trình SlawM Invent thất bại.')
+                    print("Cập nhật tiến trình SlawM Invent thất bại.")
+            return
+        
         year = year_var.get()
         month = month_var.get()
         if(year != '' and len(year) != 4):
@@ -308,12 +338,6 @@ def submit_action():
             restart_button.config(state="disabled")
             if action == "add":
                 simulate_jobs(type_data, year, month, action)
-            if action == "update_image":
-                simulate_jobs(type_data, year, month, action)
-            elif action == 'get_error':
-                getFileUrl(type_data, year, month)
-            elif action == 'get_url':
-                getFileError(type_data, year, month)
             else:
                 root.after(0, lambda: messagebox.showerror("Lỗi", "Hành động không hợp lệ. Vui lòng chọn lại."))
                 task_running = False
@@ -351,6 +375,7 @@ def on_closing():
 def restart_program():
     python = sys.executable
     os.execl(python, python, *sys.argv)
+    
 root = tk.Tk()
 root.title("Chọn hành động cho hồ sơ")
 root.geometry("300x250")
@@ -374,7 +399,7 @@ ttk.Label(main_frame, text="Chọn loại hồ sơ:", width=20).grid(row=0, colu
 type_menu = ttk.OptionMenu(main_frame, type_var, "brand", "industrial", "invent", "brand")
 type_menu.grid(row=0, column=1, padx=5, pady=5, sticky=(tk.W, tk.E))
 ttk.Label(main_frame, text="Chọn hành động:", width=20).grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
-action_menu = ttk.OptionMenu(main_frame, action_var, "add", "add", "update_image", "get_error", "get_url")
+action_menu = ttk.OptionMenu(main_frame, action_var, "add", "add", "update_progress")
 action_menu.grid(row=1, column=1, padx=5, pady=5, sticky=(tk.W, tk.E))
 ttk.Label(main_frame, text="Nhập năm:", width=10).grid(row=2, column=0, padx=5, pady=5, sticky=tk.W)
 year_entry = ttk.Entry(main_frame, textvariable=year_var, width=25)
@@ -394,6 +419,16 @@ cancel_button.grid(row=0, column=1, padx=5)
 cancel_button.config(state="disabled")
 restart_button = ttk.Button(button_frame, text="Restart", command=restart_program, width=10)
 restart_button.grid(row=0, column=2, padx=5)
+
+def on_action_change(*args):
+    if action_var.get() == "update_progress":
+        year_entry.grid_remove()
+        month_entry.grid_remove()
+    else:
+        year_entry.grid()
+        month_entry.grid()
+
+action_var.trace("w", on_action_change)
+
 root.protocol("WM_DELETE_WINDOW", on_closing)
 root.mainloop()
-
