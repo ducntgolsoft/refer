@@ -254,6 +254,7 @@ def updateProgressProfile():
         url = os.getenv('SLM_URL') + '/getByProfileType/industrial_design'
         response = requests.get(url)
         results = response.json()
+        profiles_to_update = []
         for result in results:
             profile_quantity = result.get('profile_quantity')
             progress_length = result.get('progress_length')
@@ -261,9 +262,14 @@ def updateProgressProfile():
             cursor.execute(check_query)
             result = cursor.fetchone()
             new_length = len(json.loads(result[43]))
-            if(progress_length != new_length):
-                url = os.getenv('SLM_URL') + '/api/updateProgessProfile'
-                response = requests.post(url, data={'profile_quantity': profile_quantity, 'progress': result[43]})
+            if progress_length != new_length:
+                profiles_to_update.append({
+                    'profile_quantity': profile_quantity,
+                    'progress': result[43]
+                })
+        if profiles_to_update:
+            url = os.getenv('SLM_URL') + '/api/updateProgessProfile'
+            response = requests.post(url, json={'profiles': profiles_to_update})
         return True
     except Exception as e:
         myLogger(str(e), 'exception')
