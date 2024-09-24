@@ -287,32 +287,34 @@ def submit_action():
         global cancel_flag, task_running
         type_data = type_var.get()
         action = action_var.get()
-        
         if action == "update_progress":
             if type_data == 'brand':
                 print("Bắt đầu cập nhật tiến trình SlawM Brand.")
+                send_msg_tele("Bắt đầu cập nhật tiến trình SlawM Brand.")
                 check = BrandUpdateProgressProfile()
                 if check:
-                    send_msg_tele('Cập nhật tiến trình SlawM Brand thành công.')
-                    print("Cập nhật tiến trình SlawM Brand thành công.")
+                    send_msg_tele('Cập nhật tiến trình SlawM Brand kết thúc.')
+                    print("Cập nhật tiến trình SlawM Brand kết thúc.")
                 else:
                     send_msg_tele('Cập nhật tiến trình SlawM Brand thất bại.')
                     print("Cập nhật tiến trình SlawM Brand thất bại.")
             if type_data == 'industrial':
+                send_msg_tele("Bắt đầu cập nhật tiến trình SlawM Industrial.")
                 print("Bắt đầu cập nhật tiến trình SlawM Industrial.")
                 check = IndustrialUpdateProgressProfile()
                 if check:
-                    send_msg_tele('Cập nhật tiến trình SlawM Industrial thành công.')
-                    print("Cập nhật tiến trình SlawM Industrial thành công.")
+                    send_msg_tele('Cập nhật tiến trình SlawM Industrial kết thúc.')
+                    print("Cập nhật tiến trình SlawM Industrial kết thúc.")
                 else:
                     send_msg_tele('Cập nhật tiến trình SlawM Industrial thất bại.')
                     print("Cập nhật tiến trình SlawM Industrial thất bại.")
             if type_data == 'invent':
+                send_msg_tele("Bắt đầu cập nhật tiến trình SlawM Invent.")
                 print("Bắt đầu cập nhật tiến trình SlawM Invent.")
                 check = InventUpdateProgressProfile()
                 if check:
-                    send_msg_tele('Cập nhật tiến trình SlawM Invent thành công.')
-                    print("Cập nhật tiến trình SlawM Invent thành công.")
+                    send_msg_tele('Cập nhật tiến trình SlawM Invent kết thúc.')
+                    print("Cập nhật tiến trình SlawM Invent kết thúc.")
                 else:
                     send_msg_tele('Cập nhật tiến trình SlawM Invent thất bại.')
                     print("Cập nhật tiến trình SlawM Invent thất bại.")

@@ -2,7 +2,7 @@ import datetime
 import json
 import requests
 
-from app.helper import save_image, update_image, myLogger
+from app.helper import save_image, update_image, myLogger, send_msg_tele
 from config.database import db_connection_live, db_connection
 
 import os
@@ -318,21 +318,28 @@ def updateProgressProfile():
         response = requests.get(url)
         results = response.json()
         profiles_to_update = []
+        profile_not_found = []
         for result in results:
             profile_quantity = result.get('profile_quantity')
             progress_length = result.get('progress_length')
             check_query = f"SELECT * FROM `brand` WHERE `nhanhieu_id_gach` = '{profile_quantity}' ORDER BY `id` DESC LIMIT 1"
             cursor.execute(check_query)
             result = cursor.fetchone()
-            new_length = len(json.loads(result[46]))
-            if progress_length != new_length:
-                profiles_to_update.append({
-                    'profile_quantity': profile_quantity,
-                    'progress': result[46]
-                })
+            if result[46]:
+                new_length = len(json.loads(result[46]))
+                if progress_length != new_length:
+                    profiles_to_update.append({
+                        'profile_quantity': profile_quantity,
+                        'progress': result[46]
+                    })
+            else:
+                profile_not_found.append(profile_quantity)
         if profiles_to_update:
             url = os.getenv('SLM_URL') + '/api/updateProgessProfile'
             response = requests.post(url, json={'profiles': profiles_to_update})
+        if profile_not_found:
+            send_message = f"Không tìm thấy các profile: {', '.join(profile_not_found)} hoặc chưa có dữ liệu tiến trình."
+            send_msg_tele(send_message)
         return True
     except Exception as e:
         myLogger(str(e), 'exception')
