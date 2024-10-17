@@ -2,8 +2,8 @@ import datetime
 import json
 import requests
 
-from app.helper import save_image, update_image, myLogger, send_msg_tele
-from config.database import db_connection_live, db_connection
+from app.helper import save_image, myLogger, send_msg_tele
+from config.database import db_connection
 
 import os
 from dotenv import load_dotenv

@@ -128,7 +128,7 @@ def save_image(folder, images):
     # new_image_names = [os.path.basename(img).replace("\\", "/") for img in new_images if os.path.isfile(img)]
     # url_image_prefix = '/storage/' + folder + '/'
     # newImages = [url_image_prefix + image for image in new_image_names]
-    return json.dumps(url_list)
+    return url_list
 
 
 def myLogger(msg, log_level='critical'):

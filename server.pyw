@@ -19,7 +19,6 @@ folder_brand = os.getenv('DIRECTORY_BRAND')
 folder_invent = os.getenv('DIRECTORY_INVENT')
 folder_industrial = os.getenv('DIRECTORY_INDUSTRIAL')
 
-
 def getFileError(file_type, year, month):
     global storage_data, folder_brand, folder_invent, folder_industrial
     global status, task_running, cancel_flag
@@ -72,7 +71,6 @@ def getFileError(file_type, year, month):
             except Exception as e:
                 print(f"Error: {str(e)}")
         print("Hoàn thành lấy file lỗi.")
-
 
 def getFileUrl(file_type, year, month):
     global storage_data, folder_brand, folder_invent, folder_industrial

@@ -80,8 +80,8 @@ def config(data):
     if '(54) Tên' in data and data['(54) Tên']:
         data_insert['sangche_ten'] = data['(54) Tên'].split('(VI)')[1].strip()
 
-    if '(57) Tóm tắt"' in data and data['(57) Tóm tắt"']:
-        data_insert['sangche_tomtat'] = data['(57) Tóm tắt"']
+    if '(57) Tóm tắt' in data and data['(57) Tóm tắt']:
+        data_insert['sangche_tomtat'] = data['(57) Tóm tắt']
 
     if '(58) Các tài liệu đối chứng"' in data and data['(58) Các tài liệu đối chứng"']:
         data_insert['sangche_tldoichung'] = data['(58) Các tài liệu đối chứng"']
@@ -211,15 +211,15 @@ def insertOrUpdate(data, table="invent"):
         check_query = f"SELECT * FROM `{table}` WHERE `sangche_id_gach` = '{data_insert['sangche_id_gach']}' ORDER BY `id` DESC LIMIT 1"
         cursor.execute(check_query)
         result = cursor.fetchone()
+        
         if 'images' in data and data['images'] != '':
+            data_insert['sangche_image'] = save_image('invent', data['images'])
+        else:
             if result:
                 old_image = json.loads(result[4]) if result[4] else []
-                # data_insert['sangche_image'] = update_image('invent', data['images'], old_image)
                 data_insert['sangche_image'] = old_image
-            else:
-                data_insert['sangche_image'] = save_image('invent', data['images'])
+                
         if result:
-            data_insert['sangche_image'] = json.loads(result[4]) if result[4] else []
             column_update = [
                 'sangche_ngaynop', 'sangche_ten', 'sangche_image', 'sangche_nguoinop_full', 'sangche_nguoinop_name',
                 'sangche_nguoinop_provcode', 'sangche_nguoinop_address', 'sangche_nguoinop_name',
