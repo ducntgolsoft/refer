@@ -48,28 +48,28 @@ def getFileError(file_type, year, month):
     error_files = []
     try:
         error_file_path = 'storage/error.json'
-        if os.path.exists(error_file_path):
-            with open(error_file_path, 'r') as f:
-                error_records = json.load(f)
-                for error in error_records:
-                    file_path = os.path.join(folder_data, error['file'])
-                    if os.path.exists(file_path):
-                        error_files.append(file_path)
-                    else:
-                        print(f"File {error['file']} does not exist.")
-        else:
-            print("Error file does not exist.")
+        # if os.path.exists(error_file_path):
+        #     with open(error_file_path, 'r') as f:
+        #         error_records = json.load(f)
+        #         for error in error_records:
+        #             file_path = os.path.join(folder_data, error['file'])
+        #             if os.path.exists(file_path):
+        #                 error_files.append(file_path)
+        #             else:
+        #                 print(f"File {error['file']} does not exist.")
+        # else:
+        #     print("Error file does not exist.")
     except Exception as e:
         print("Error: ", str(e))
     finally:
-        error_folder = storage_data + '\\Error'
-        if not os.path.exists(error_folder):
-            os.makedirs(error_folder)
-        for error_file in error_files:
-            try:
-                os.rename(error_file, os.path.join(error_folder, os.path.basename(error_file)))
-            except Exception as e:
-                print(f"Error: {str(e)}")
+        # error_folder = storage_data + '\\Error'
+        # if not os.path.exists(error_folder):
+        #     os.makedirs(error_folder)
+        # for error_file in error_files:
+        #     try:
+        #         os.rename(error_file, os.path.join(error_folder, os.path.basename(error_file)))
+        #     except Exception as e:
+        #         print(f"Error: {str(e)}")
         print("Hoàn thành lấy file lỗi.")
 
 def getFileUrl(file_type, year, month):

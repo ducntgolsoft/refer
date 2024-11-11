@@ -1,4 +1,4 @@
-import json, os, time, string, random, requests, cv2, numpy as np, logging, platform
+import json, os, time, string, random, requests, logging, platform
 from dotenv import load_dotenv
 from config.database import db_connection
 
@@ -31,74 +31,6 @@ def get_txt_files_info(directory, filename):
 def generate_random_filename(length=20):
     letters = string.ascii_letters
     return ''.join(random.choice(letters) for i in range(length))
-
-
-def compareImage(image1, image2):
-    image1 = cv2.imread(image1)
-    image2 = cv2.imread(image2)
-    if image1.shape == image2.shape:
-        difference = cv2.subtract(image1, image2)
-        b, g, r = cv2.split(difference)
-        if cv2.countNonZero(b) == 0 and cv2.countNonZero(g) == 0 and cv2.countNonZero(r) == 0:
-            return True
-    return False
-
-
-def images_are_similar(image1, image2, threshold=0.9):
-    # Convert to grayscale
-    gray1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
-    gray2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
-    # Resize images to the same size
-    gray1 = cv2.resize(gray1, (100, 100))
-    gray2 = cv2.resize(gray2, (100, 100))
-    # Compute similarity
-    difference = cv2.absdiff(gray1, gray2)
-    similarity = 1 - (np.sum(difference) / (100 * 100 * 255))
-    return similarity > threshold
-
-
-def update_image(folder, images, old_images):
-    urls = images
-    url_list = urls.split("##")
-    save_dir = folder_image + folder
-    os.makedirs(save_dir, exist_ok=True)
-    new_images = []
-    error_images = []
-    for url in url_list:
-        response = requests.get(url)
-        if response.status_code == 200:
-            image_data = response.content
-            new_image = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_COLOR)
-            if new_image is None:
-                error_images.append(url)
-                continue
-            matched = False
-            for old_image_path in old_images:
-                if not os.path.isfile(old_image_path):
-                    continue
-                old_image = cv2.imread(old_image_path)
-                if old_image is None:
-                    continue
-                if images_are_similar(new_image, old_image):
-                    matched = True
-                    break
-            if not matched:
-                random_filename = generate_random_filename()
-                file_path = os.path.join(save_dir, f"{random_filename}.png")
-                with open(file_path, "wb") as file:
-                    file.write(image_data)
-                new_images.append(file_path)
-                old_images.append(file_path)
-        else:
-            error_images.append(url)
-    if error_images:
-        for error_url in error_images:
-            print(error_url)
-    new_image_names = [os.path.basename(img).replace("\\", "/") for img in new_images if os.path.isfile(img)]
-    url_image_prefix = '/storage/' + folder + '/'
-    new_images_urls = [url_image_prefix + image for image in new_image_names]
-    return json.dumps(new_images_urls)
-
 
 def save_image(folder, images):
     urls = images

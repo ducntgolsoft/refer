@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from app.helper import save_image, update_image, myLogger
+from app.helper import save_image, myLogger
 
 
 def config(data):
@@ -212,14 +212,11 @@ def insertOrUpdate(data, table="invent"):
         cursor.execute(check_query)
         result = cursor.fetchone()
         
-        if 'images' in data and data['images'] != '':
-            data_insert['sangche_image'] = save_image('invent', data['images'])
-        else:
-            if result:
-                old_image = json.loads(result[4]) if result[4] else []
-                data_insert['sangche_image'] = old_image
-                
         if result:
+            old_image = json.loads(result[4]) if result[4] else []
+            data_insert['sangche_image'] = old_image
+            if 'images' in data and data['images']:
+                data_insert['sangche_image'] = save_image('invent', data['images'])
             column_update = [
                 'sangche_ngaynop', 'sangche_ten', 'sangche_image', 'sangche_nguoinop_full', 'sangche_nguoinop_name',
                 'sangche_nguoinop_provcode', 'sangche_nguoinop_address', 'sangche_nguoinop_name',
@@ -297,6 +294,8 @@ def insertOrUpdate(data, table="invent"):
                 db_connection.rollback()
                 return False
     except Exception as e:
+        # log số đơn
+        myLogger('sangche_id_gach: ' + data_insert['sangche_id_gach'] + ' ' + str(e), 'exception')
         myLogger(str(e), 'exception')
         db_connection.rollback()
         return False

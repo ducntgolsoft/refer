@@ -148,19 +148,8 @@ def insertOrUpdate(data, table="industrial"):
         check_query = f"SELECT * FROM {table} WHERE `kdcn_id_gach` = '{data_insert['kdcn_id_gach']}' ORDER BY `id` DESC LIMIT 1"
         cursor.execute(check_query)
         result = cursor.fetchone()
-        if 'images' in data and data['images'] != '':
-            if result:
-                old_image = json.loads(result[24]) if result[24] else []
-                data_insert['kdcn_image'] = old_image
-            else:
-                data_insert['kdcn_image'] = save_image('industrial', data['images'])
-        # if result:
-            # data_insert['kdcn_image'] = save_image('brand', data['images'])
-        else:
-            old_image = json.loads(result[24]) if result[24] else []
-            data_insert['kdcn_image'] = old_image
+        data_insert['kdcn_image'] = save_image('industrial', data['images'])
         if result:
-            
             column_update = [
                 'kdcn_ngaynop', 'kdcn_ten', 'kdcn_mota', 'kdcn_tacgia', 'kdcn_pllocarno', 'kdcn_plquocgia',
                 'kdcn_bang_id_gach',
